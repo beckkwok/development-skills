@@ -120,6 +120,7 @@ DESTRUCTIVE_RE = re.compile(
 TRUNCATE_RE = re.compile(r"\bTRUNCATE\b", re.I)
 DELETE_FROM_RE = re.compile(r"\bDELETE\s+FROM\b", re.I)
 WHERE_RE = re.compile(r"\bWHERE\b", re.I)
+UPDATE_RE = re.compile(r"\bUPDATE\b", re.I)
 FK_RE = re.compile(r"\b(?:FOREIGN\s+KEY|REFERENCES)\b", re.I)
 ALTER_TYPE_RE = re.compile(r"\bALTER\s+COLUMN\b[^;]*\bTYPE\b|\bMODIFY\s+COLUMN\b", re.I)
 CREATE_INDEX_RE = re.compile(r"\bCREATE\s+(?:UNIQUE\s+)?INDEX\b", re.I)
@@ -202,6 +203,34 @@ def scan_added_line(path: str, line_no: int, text: str) -> list[dict[str, Any]]:
             BLOCKER, "secret-literal", "Possible secret/credential literal committed in a migration.",
             path, line_no,
         ))
+    return findings
+
+
+def scan_statements(path: str, patch: str) -> list[dict[str, Any]]:
+    """Statement-level checks over forward-migration added lines.
+
+    Joining lines first avoids flagging multi-line statements whose WHERE
+    clause sits on a later line.
+    """
+    added = list(forward_lines(path, patch))
+    if not added:
+        return []
+    findings: list[dict[str, Any]] = []
+    blob = "\n".join(text for _, text in added)
+    base = added[0][0]
+    offset = 0
+    for chunk in blob.split(";"):
+        match = UPDATE_RE.search(chunk)
+        if match and chunk.strip() and not WHERE_RE.search(chunk):
+            line_no = base + blob.count("\n", 0, offset + match.start())
+            findings.append(finding(
+                WARNING, "full-table-update",
+                "UPDATE without a WHERE clause rewrites every row and can lock the table.",
+                path, line_no,
+                detail="Scope the rows with WHERE, or batch the backfill (e.g. WHERE id BETWEEN ... range) "
+                       "during a low-traffic window, and confirm the rollback path.",
+            ))
+        offset += len(chunk) + 1
     return findings
 
 
@@ -431,6 +460,7 @@ def analyze(pr: dict[str, Any], cfg: dict[str, Any], repo_root: str | None = Non
         else:
             for line_no, text in forward_lines(path, patch):
                 findings.extend(scan_added_line(path, line_no, text))
+            findings.extend(scan_statements(path, patch))
 
         if is_migration(path):
             migration_scripts.append(path)

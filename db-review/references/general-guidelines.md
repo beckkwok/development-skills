@@ -30,6 +30,8 @@ extend these rules and always take precedence.
 - `RENAME COLUMN/TABLE` - breaks existing code.
 - `ON DELETE CASCADE` - silent related-row deletion.
 - `ADD COLUMN ... DEFAULT` on large tables (rewrite on older engines).
+- **Full-table `UPDATE`** (no `WHERE`) - rewrites every row and can lock the table.
+  Flag for attention: require a scoped `WHERE`, a batched backfill, or an off-peak window.
 
 ## Always check
 
