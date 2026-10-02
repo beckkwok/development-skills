@@ -236,6 +236,18 @@ def is_migration(path: str) -> bool:
     return bool(MIGRATION_RE.search("/" + path.replace("\\", "/")))
 
 
+def is_rollback(path: str) -> bool:
+    """True for standalone rollback artifacts (down/undo files, Flyway U__).
+
+    These undo another migration, so they are recorded as rollback scripts and
+    are never scanned for issues nor required to have their own rollback.
+    """
+    name = posixpath.basename(path.replace("\\", "/"))
+    if re.match(r"^U\d+__.*\.sql$", name, re.I):
+        return True
+    return name.lower().endswith(ROLLBACK_SUFFIXES)
+
+
 def _content_rollback(kind: str, path: str, content: str) -> str | None:
     if kind == "python":
         match = re.search(r"def\s+downgrade\s*\([^)]*\):(.*?)(?=\ndef |\Z)", content, re.S)
@@ -401,8 +413,14 @@ def analyze(pr: dict[str, Any], cfg: dict[str, Any], repo_root: str | None = Non
     migration_scripts: list[str] = []
     rollback_scripts: list[str] = []
 
+    forward_files = []
     for entry in db_files:
         path = classify.path_of(entry)
+        if is_rollback(path):
+            if path not in rollback_scripts:
+                rollback_scripts.append(path)
+            continue
+        forward_files.append(entry)
         patch = entry.get("patch") if isinstance(entry, dict) else None
         if not patch:
             findings.append(finding(
@@ -418,7 +436,8 @@ def analyze(pr: dict[str, Any], cfg: dict[str, Any], repo_root: str | None = Non
             migration_scripts.append(path)
             rollback = find_rollback(path, patch or "", changed_paths, repo_root)
             if rollback:
-                rollback_scripts.append(rollback)
+                if rollback not in rollback_scripts:
+                    rollback_scripts.append(rollback)
             else:
                 severity = BLOCKER if cfg.get("require_rollback", True) else WARNING
                 findings.append(finding(
@@ -428,7 +447,7 @@ def analyze(pr: dict[str, Any], cfg: dict[str, Any], repo_root: str | None = Non
                     detail="Add a down/undo migration (or set require_rollback=false in .review/config.json if forward-only).",
                 ))
 
-    schema_changes = summarize_changes(db_files)
+    schema_changes = summarize_changes(forward_files)
     risks = [f"{f['message']} ({f.get('file', '?')})" for f in findings
              if f["severity"] in (BLOCKER, ERROR)]
 
