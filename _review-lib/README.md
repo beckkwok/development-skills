@@ -15,9 +15,10 @@ as a skill — they call it as a command.
 _review-lib/
   cli.py               # command entrypoint (run this)
   reviewlib/
-    gh.py              # fetch PR/issue, post/update comments
+    gh.py              # fetch PR/issue, post/update comments, issue-edit, pr-create
     classify.py        # path -> db / test / doc / code / other
     config.py          # defaults + .review/config.json overrides
+    files.py           # encoding-tolerant file reading (UTF-8 / UTF-16)
     guidelines.py      # merge general + repo-specific guidelines
     render.py          # findings JSON -> Markdown comment
   tests/               # offline unit tests
@@ -73,6 +74,18 @@ Optional; deep-merged over defaults. Example:
   "commands": { "lint": "npm run lint", "test": "npm test" }
 }
 ```
+
+## Windows / PowerShell notes
+
+Skill examples are single-line and shell-neutral, but keep these differences in mind:
+
+- PowerShell 5.1 has no `\` line continuation. Run each example command on one line.
+- PowerShell `>` redirection writes **UTF-16**. All readers here accept UTF-8
+  (with or without BOM) and UTF-16, and everything written is plain UTF-8 — so
+  capturing output with `>` works on both shells.
+- Quoting differs: PowerShell uses the backtick for escapes and `;` separates
+  statements. Prefer probe/script **files** over inline quoted code, e.g.
+  `python /tmp/probe.py` instead of `python -c "..."`.
 
 ## Safety
 

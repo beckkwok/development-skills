@@ -15,23 +15,26 @@ Read-only on source; throwaway reproduction scripts go outside the repo.
 
 ## Quick start
 
+Replace `<skills-root>` with your skills directory (`~/.agents/skills`). Commands are
+single-line and shell-neutral (POSIX shells and Windows PowerShell).
+
 ```bash
-SKILLS=~/.agents/skills
-python "$SKILLS/_review-lib/cli.py" check
-python "$SKILLS/_review-lib/cli.py" issue-fetch --repo owner/repo --issue 7 > /tmp/issue.json
-python "$SKILLS/debug-analysis/scripts/issue_checks.py" extract \
-  --issue-json /tmp/issue.json --repo-root /path/to/checkout --json
+python "<skills-root>/_review-lib/cli.py" check
+python "<skills-root>/_review-lib/cli.py" issue-fetch --repo owner/repo --issue 7 > /tmp/issue.json
+python "<skills-root>/debug-analysis/scripts/issue_checks.py" extract --issue-json /tmp/issue.json --repo-root /path/to/checkout --json
+```
 
-# after investigating and writing /tmp/analysis.json:
-python "$SKILLS/debug-analysis/scripts/issue_checks.py" render \
-  --issue-json /tmp/issue.json --analysis /tmp/analysis.json \
-  --comment-out /tmp/debug-comment.md
-python "$SKILLS/_review-lib/cli.py" comment --repo owner/repo --number 7 \
-  --kind issue --body-file /tmp/debug-comment.md
+After investigating and writing `/tmp/analysis.json`:
 
-# assign back to the author and label (bug | enhancement | invalid | needs-info | question)
-python "$SKILLS/_review-lib/cli.py" issue-edit --repo owner/repo --number 7 \
-  --assignee <author-login> --label issue-analysed --label bug --ensure-labels
+```bash
+python "<skills-root>/debug-analysis/scripts/issue_checks.py" render --issue-json /tmp/issue.json --analysis /tmp/analysis.json --comment-out /tmp/debug-comment.md
+python "<skills-root>/_review-lib/cli.py" comment --repo owner/repo --number 7 --kind issue --body-file /tmp/debug-comment.md
+```
+
+Assign back to the author and label (`bug` | `enhancement` | `invalid` | `needs-info` | `question`):
+
+```bash
+python "<skills-root>/_review-lib/cli.py" issue-edit --repo owner/repo --number 7 --assignee <author-login> --label issue-analysed --label bug --ensure-labels
 ```
 
 ## `analysis.json` shape

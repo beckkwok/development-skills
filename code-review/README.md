@@ -11,14 +11,14 @@ missing tests or problems. Read-only on source.
 
 ## Quick start
 
+Replace `<skills-root>` with your skills directory (`~/.agents/skills`). Commands are
+single-line and shell-neutral (POSIX shells and Windows PowerShell).
+
 ```bash
-SKILLS=~/.agents/skills
-python "$SKILLS/_review-lib/cli.py" check
-python "$SKILLS/_review-lib/cli.py" pr-fetch --repo owner/repo --pr 123 > /tmp/pr.json
-python "$SKILLS/code-review/scripts/code_checks.py" --pr-json /tmp/pr.json \
-  --comment-out /tmp/code-comment.md --json
-python "$SKILLS/_review-lib/cli.py" comment --repo owner/repo --number 123 \
-  --kind pr --body-file /tmp/code-comment.md
+python "<skills-root>/_review-lib/cli.py" check
+python "<skills-root>/_review-lib/cli.py" pr-fetch --repo owner/repo --pr 123 > /tmp/pr.json
+python "<skills-root>/code-review/scripts/code_checks.py" --pr-json /tmp/pr.json --comment-out /tmp/code-comment.md --json
+python "<skills-root>/_review-lib/cli.py" comment --repo owner/repo --number 123 --kind pr --body-file /tmp/code-comment.md
 ```
 
 Add `--repo-root /path/to/checkout --run-commands` to run the repo's configured

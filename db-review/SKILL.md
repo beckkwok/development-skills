@@ -15,6 +15,9 @@ migrations** - it only reads, comments, and (on PASS) updates the registry doc.
 - `SKILLS_ROOT` - the parent of `SKILL_DIR` (contains `_review-lib/`).
 - `TMP` - any scratch directory (e.g. `$env:TEMP` on Windows, `/tmp` elsewhere).
 
+Commands below are single-line and shell-neutral: they run unchanged in POSIX
+shells and Windows PowerShell.
+
 ## Prerequisites
 
 - GitHub CLI installed and authenticated: run the `check` command below.
@@ -35,15 +38,14 @@ python "<SKILLS_ROOT>/_review-lib/cli.py" pr-fetch --repo <owner/repo> --pr <N> 
 ```
 
 `pr.json` contains `meta` (title, url, author, `headRefOid`), `files` (with patches)
-and `diff`.
+and `diff`. Readers accept UTF-8 and UTF-16 output files.
 
 ### 3. Load guidelines
 
 Read both layers and apply them together:
 
 ```bash
-python "<SKILLS_ROOT>/_review-lib/cli.py" guidelines --skill db-review --key db \
-  --repo <owner/repo> --ref <headRefOid> --json
+python "<SKILLS_ROOT>/_review-lib/cli.py" guidelines --skill db-review --key db --repo <owner/repo> --ref <headRefOid> --json
 ```
 
 - Add `--repo-root <path>` instead of `--repo/--ref` when working from a checkout.
@@ -53,12 +55,7 @@ python "<SKILLS_ROOT>/_review-lib/cli.py" guidelines --skill db-review --key db 
 ### 4. Analyze
 
 ```bash
-python "<SKILL_DIR>/scripts/db_checks.py" --pr-json "<TMP>/pr.json" \
-  --comment-out "<TMP>/db-comment.md" \
-  --summary "<one-line summary>" \
-  --guidelines "general[,repo-specific]" \
-  --repo-root "<path-to-checkout>" \
-  --json > "<TMP>/db-result.json"
+python "<SKILL_DIR>/scripts/db_checks.py" --pr-json "<TMP>/pr.json" --comment-out "<TMP>/db-comment.md" --summary "<one-line summary>" --guidelines "general[,repo-specific]" --repo-root "<path-to-checkout>" --json > "<TMP>/db-result.json"
 ```
 
 The result JSON has `verdict`, `findings`, `db_files`, `migration_scripts`,
@@ -73,17 +70,17 @@ The result JSON has `verdict`, `findings`, `db_files`, `migration_scripts`,
 Post a **new** comment by default:
 
 ```bash
-python "<SKILLS_ROOT>/_review-lib/cli.py" comment --repo <owner/repo> --number <N> \
-  --kind pr --body-file "<TMP>/db-comment.md"
+python "<SKILLS_ROOT>/_review-lib/cli.py" comment --repo <owner/repo> --number <N> --kind pr --body-file "<TMP>/db-comment.md"
 ```
 
 Only when the user asks to update in place:
 
 ```bash
-python "<SKILLS_ROOT>/_review-lib/cli.py" find-comment --repo <owner/repo> --number <N> \
-  --marker "<!-- db-review-agent -->"
-python "<SKILLS_ROOT>/_review-lib/cli.py" comment-update --repo <owner/repo> \
-  --comment-id <id> --body-file "<TMP>/db-comment.md"
+python "<SKILLS_ROOT>/_review-lib/cli.py" find-comment --repo <owner/repo> --number <N> --marker "<!-- db-review-agent -->"
+```
+
+```bash
+python "<SKILLS_ROOT>/_review-lib/cli.py" comment-update --repo <owner/repo> --comment-id <id> --body-file "<TMP>/db-comment.md"
 ```
 
 ### 6. Update the schema registry (PASS only)
@@ -91,8 +88,7 @@ python "<SKILLS_ROOT>/_review-lib/cli.py" comment-update --repo <owner/repo> \
 With a local checkout:
 
 ```bash
-python "<SKILL_DIR>/scripts/db_checks.py" --pr-json "<TMP>/pr.json" \
-  --repo-root "<path-to-checkout>" --update-registry --json
+python "<SKILL_DIR>/scripts/db_checks.py" --pr-json "<TMP>/pr.json" --repo-root "<path-to-checkout>" --update-registry --json
 ```
 
 - Default registry path: `docs/db/schema-registry.md` (override with `--registry`

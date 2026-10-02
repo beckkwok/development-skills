@@ -23,7 +23,7 @@ from typing import Any
 SKILLS_ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(SKILLS_ROOT / "_review-lib"))
 
-from reviewlib import gh  # noqa: E402
+from reviewlib import files, gh  # noqa: E402
 
 LABEL_TO_TYPE = {
     "bug": "fix",
@@ -151,7 +151,7 @@ def execute(args: argparse.Namespace) -> dict[str, Any]:
         raise SkillError("Provide --issue, --title, or --branch to name the branch.")
 
     pr_title = title or branch
-    body = Path(args.body_file).read_text(encoding="utf-8-sig") if args.body_file else build_pr_body(issue, pr_title)
+    body = files.read_text(args.body_file) if args.body_file else build_pr_body(issue, pr_title)
     reviewers = split_values(args.reviewer)
     assignees = split_values(args.assignee)
 

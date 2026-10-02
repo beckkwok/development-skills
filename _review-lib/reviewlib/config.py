@@ -11,7 +11,7 @@ import json
 from pathlib import Path
 from typing import Any
 
-from . import gh
+from . import files, gh
 
 DEFAULT_DB_GLOBS = [
     # Migration frameworks / directories
@@ -136,7 +136,7 @@ def load_config_file(path: str | Path) -> dict[str, Any] | None:
     if not p.is_file():
         return None
     try:
-        return json.loads(p.read_text(encoding="utf-8"))
+        return json.loads(files.read_text(p))
     except json.JSONDecodeError:
         return None
 

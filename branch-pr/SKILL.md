@@ -15,6 +15,9 @@ branches or force-push.
 - `SKILL_DIR` - this skill's base directory.
 - `SKILLS_ROOT` - the parent of `SKILL_DIR` (contains `_review-lib/`).
 
+Commands below are single-line and shell-neutral: they run unchanged in POSIX
+shells and Windows PowerShell.
+
 ## Prerequisites
 
 - GitHub CLI installed and authenticated (`check` below).
@@ -31,8 +34,7 @@ python "<SKILLS_ROOT>/_review-lib/cli.py" check
 ### 2. Preview the plan (always do this first)
 
 ```bash
-python "<SKILL_DIR>/scripts/branch_pr.py" --repo <owner/repo> --issue <N> \
-  --repo-root "<path-to-checkout>" --dry-run --json
+python "<SKILL_DIR>/scripts/branch_pr.py" --repo <owner/repo> --issue <N> --repo-root "<path-to-checkout>" --dry-run --json
 ```
 
 This shows the derived branch name (`<type>/<issue>-<slug>`), base branch, PR
@@ -41,18 +43,17 @@ title, reviewers and assignees - without changing anything.
 ### 3. Create the branch and open the PR
 
 ```bash
-python "<SKILL_DIR>/scripts/branch_pr.py" --repo <owner/repo> --issue <N> \
-  --repo-root "<path-to-checkout>" \
-  [--base main] [--branch custom/name] [--type feature] \
-  [--title "PR title"] [--body-file "<TMP>/pr-body.md"] \
-  [--draft] [--reviewer alice,bob] [--assignee alice] --json
+python "<SKILL_DIR>/scripts/branch_pr.py" --repo <owner/repo> --issue <N> --repo-root "<path-to-checkout>" --json
 ```
+
+Optional flags (combine as needed): `--base main`, `--branch custom/name`,
+`--type feature`, `--title "PR title"`, `--body-file "<TMP>/pr-body.md"`,
+`--draft`, `--reviewer alice,bob`, `--assignee alice`, `--empty-commit`.
 
 Without a checkout, clone on the fly:
 
 ```bash
-python "<SKILL_DIR>/scripts/branch_pr.py" --repo <owner/repo> --issue <N> \
-  --clone-dir "<TMP>/<repo-name>" --json
+python "<SKILL_DIR>/scripts/branch_pr.py" --repo <owner/repo> --issue <N> --clone-dir "<TMP>/<repo-name>" --json
 ```
 
 ## Behavior

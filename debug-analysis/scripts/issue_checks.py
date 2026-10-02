@@ -22,6 +22,8 @@ from typing import Any
 SKILLS_ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(SKILLS_ROOT / "_review-lib"))
 
+from reviewlib import files  # noqa: E402
+
 COMMENT_MARKER = "<!-- debug-analysis-agent -->"
 
 SKIP_DIRS = {
@@ -248,16 +250,16 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
 
     if args.mode == "extract":
-        raw = sys.stdin.read() if args.issue_json == "-" else Path(args.issue_json).read_text(encoding="utf-8-sig")
+        raw = sys.stdin.read() if args.issue_json == "-" else files.read_text(args.issue_json)
         issue = json.loads(raw)
         result = extract(issue, repo_root=args.repo_root)
         json.dump(result, sys.stdout, indent=2, ensure_ascii=False)
         sys.stdout.write("\n")
         return 0
 
-    raw_issue = sys.stdin.read() if args.issue_json == "-" else Path(args.issue_json).read_text(encoding="utf-8-sig")
+    raw_issue = sys.stdin.read() if args.issue_json == "-" else files.read_text(args.issue_json)
     issue = json.loads(raw_issue)
-    analysis = json.loads(Path(args.analysis).read_text(encoding="utf-8-sig"))
+    analysis = json.loads(files.read_text(args.analysis))
     applied = [g for g in (args.guidelines or "").split(",") if g]
     body = render(issue, analysis, applied)
     if args.comment_out:

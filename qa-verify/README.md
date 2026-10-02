@@ -12,22 +12,27 @@ so it can run on a different machine or model than the coding agent.
 
 ## Quick start
 
+Replace `<skills-root>` with your skills directory (`~/.agents/skills`). Commands are
+single-line and shell-neutral (POSIX shells and Windows PowerShell). Prefer probe
+files over inline quoted commands - quoting rules differ between shells.
+
 ```bash
-SKILLS=~/.agents/skills
-python "$SKILLS/_review-lib/cli.py" check
-python "$SKILLS/_review-lib/cli.py" issue-fetch --repo owner/repo --issue 7 > /tmp/issue.json
-python "$SKILLS/qa-verify/scripts/qa_checks.py" resolve --repo owner/repo --issue 7 \
-  --repo-root /path/to/checkout
+python "<skills-root>/_review-lib/cli.py" check
+python "<skills-root>/_review-lib/cli.py" issue-fetch --repo owner/repo --issue 7 > /tmp/issue.json
+python "<skills-root>/qa-verify/scripts/qa_checks.py" resolve --repo owner/repo --issue 7 --repo-root /path/to/checkout
+```
 
-# record each verification step
-python "$SKILLS/qa-verify/scripts/qa_checks.py" run --repo-root /path/to/checkout \
-  --step "unit tests" --out /tmp/results.json -- "npm test"
+Record each verification step (use a probe file, e.g. `/tmp/probe.py`):
 
-# after judging criteria into /tmp/results.json, render and post
-python "$SKILLS/qa-verify/scripts/qa_checks.py" render --issue-json /tmp/issue.json \
-  --results /tmp/results.json --comment-out /tmp/qa-comment.md
-python "$SKILLS/_review-lib/cli.py" comment --repo owner/repo --number 7 \
-  --kind issue --body-file /tmp/qa-comment.md
+```bash
+python "<skills-root>/qa-verify/scripts/qa_checks.py" run --repo-root /path/to/checkout --step "unit tests" --out /tmp/results.json -- "python /tmp/probe.py"
+```
+
+After judging criteria into `/tmp/results.json`, render and post:
+
+```bash
+python "<skills-root>/qa-verify/scripts/qa_checks.py" render --issue-json /tmp/issue.json --results /tmp/results.json --comment-out /tmp/qa-comment.md
+python "<skills-root>/_review-lib/cli.py" comment --repo owner/repo --number 7 --kind issue --body-file /tmp/qa-comment.md
 ```
 
 ## Verdicts

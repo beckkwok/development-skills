@@ -214,6 +214,28 @@ def issue_edit(
     return proc.stdout.strip()
 
 
+def linked_prs(repo: str, issue: int) -> list[int]:
+    """Return PR numbers cross-referenced from an issue timeline (oldest first)."""
+    repo = normalize_repo(repo)
+    proc = _gh(
+        [
+            "api", "--paginate", "--jq",
+            ".[] | select(.event==\"cross-referenced\")"
+            " | .source.issue | select(.pull_request != null) | .number",
+            f"repos/{repo}/issues/{issue}/timeline",
+        ],
+        check=False,
+    )
+    if proc.returncode != 0:
+        return []
+    out: list[int] = []
+    for line in proc.stdout.splitlines():
+        line = line.strip()
+        if line.isdigit() and int(line) not in out:
+            out.append(int(line))
+    return out
+
+
 def comment_post(repo: str, number: int, body: str, kind: str = "pr") -> str:
     """Post a new comment on a PR or issue and return its URL."""
     repo = normalize_repo(repo)

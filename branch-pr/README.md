@@ -11,17 +11,23 @@ request from it. The branch starts empty unless `--empty-commit` is given.
 
 ## Quick start
 
+Replace `<skills-root>` with your skills directory (`~/.agents/skills`). Commands are
+single-line and shell-neutral (POSIX shells and Windows PowerShell).
+
 ```bash
-SKILLS=~/.agents/skills
-python "$SKILLS/_review-lib/cli.py" check
+python "<skills-root>/_review-lib/cli.py" check
+```
 
-# preview first (no changes)
-python "$SKILLS/branch-pr/scripts/branch_pr.py" --repo owner/repo --issue 2 \
-  --repo-root /path/to/checkout --dry-run --json
+Preview first (no changes):
 
-# create the branch and open a draft PR
-python "$SKILLS/branch-pr/scripts/branch_pr.py" --repo owner/repo --issue 2 \
-  --repo-root /path/to/checkout --draft --empty-commit --json
+```bash
+python "<skills-root>/branch-pr/scripts/branch_pr.py" --repo owner/repo --issue 2 --repo-root /path/to/checkout --dry-run --json
+```
+
+Create the branch and open a draft PR:
+
+```bash
+python "<skills-root>/branch-pr/scripts/branch_pr.py" --repo owner/repo --issue 2 --repo-root /path/to/checkout --draft --empty-commit --json
 ```
 
 Without a checkout, clone on the fly with `--clone-dir <dir>` instead of `--repo-root`.

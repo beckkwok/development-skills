@@ -23,7 +23,7 @@ from typing import Any, Iterable
 SKILLS_ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(SKILLS_ROOT / "_review-lib"))
 
-from reviewlib import classify, config as config_mod, render  # noqa: E402
+from reviewlib import classify, config as config_mod, files, render  # noqa: E402
 
 COMMENT_MARKER = "<!-- db-review-agent -->"
 
@@ -373,7 +373,7 @@ def build_registry_entry(
 def update_registry(repo_root: str, registry_path: str, pr_number: int, entry: str) -> Path:
     target = Path(repo_root) / registry_path
     target.parent.mkdir(parents=True, exist_ok=True)
-    existing = target.read_text(encoding="utf-8") if target.is_file() else "# DB Schema Registry\n"
+    existing = files.read_text(target) if target.is_file() else "# DB Schema Registry\n"
     start = f"<!-- db-registry:start PR#{pr_number} -->"
     end = f"<!-- db-registry:end PR#{pr_number} -->"
     pattern = re.compile(re.escape(start) + r".*?" + re.escape(end), re.S)
@@ -472,10 +472,10 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--json", action="store_true", help="print the full result as JSON")
     args = parser.parse_args(argv)
 
-    raw = sys.stdin.read() if args.pr_json == "-" else Path(args.pr_json).read_text(encoding="utf-8-sig")
+    raw = sys.stdin.read() if args.pr_json == "-" else files.read_text(args.pr_json)
     pr = json.loads(raw)
 
-    explicit = json.loads(Path(args.config_file).read_text(encoding="utf-8-sig")) if args.config_file else None
+    explicit = json.loads(files.read_text(args.config_file)) if args.config_file else None
     cfg = config_mod.resolve(repo_root=args.repo_root, repo=pr.get("repo"), explicit=explicit)
 
     result = analyze(pr, cfg, repo_root=args.repo_root)

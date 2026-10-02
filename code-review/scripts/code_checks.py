@@ -22,7 +22,7 @@ from typing import Any
 SKILLS_ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(SKILLS_ROOT / "_review-lib"))
 
-from reviewlib import classify, config as config_mod, render  # noqa: E402
+from reviewlib import classify, config as config_mod, files, render  # noqa: E402
 
 COMMENT_MARKER = "<!-- code-review-agent -->"
 
@@ -276,10 +276,10 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--json", action="store_true", help="print the full result as JSON")
     args = parser.parse_args(argv)
 
-    raw = sys.stdin.read() if args.pr_json == "-" else Path(args.pr_json).read_text(encoding="utf-8-sig")
+    raw = sys.stdin.read() if args.pr_json == "-" else files.read_text(args.pr_json)
     pr = json.loads(raw)
 
-    explicit = json.loads(Path(args.config_file).read_text(encoding="utf-8-sig")) if args.config_file else None
+    explicit = json.loads(files.read_text(args.config_file)) if args.config_file else None
     cfg = config_mod.resolve(repo_root=args.repo_root, repo=pr.get("repo"), explicit=explicit)
 
     result = analyze(pr, cfg, repo_root=args.repo_root, run_commands=args.run_commands)

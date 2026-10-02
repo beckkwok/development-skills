@@ -10,7 +10,22 @@ from unittest import mock
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from reviewlib import classify, config as config_mod, gh, guidelines, render  # noqa: E402
+from reviewlib import classify, config as config_mod, files, gh, guidelines, render  # noqa: E402
+
+
+class FilesTests(unittest.TestCase):
+    def test_reads_utf8_utf8bom_and_utf16(self):
+        text = '{"repo": "acme/demo", "pr": 1, "note": "caf\u00e9 \u4e2d\u6587"}'
+        with tempfile.TemporaryDirectory() as tmp:
+            cases = {
+                "utf8.json": text.encode("utf-8"),
+                "bom.json": text.encode("utf-8-sig"),
+                "utf16.json": text.encode("utf-16"),  # what PowerShell `>` writes
+            }
+            for name, data in cases.items():
+                path = Path(tmp) / name
+                path.write_bytes(data)
+                self.assertEqual(json.loads(files.read_text(path))["pr"], 1, name)
 
 
 class ClassifyTests(unittest.TestCase):

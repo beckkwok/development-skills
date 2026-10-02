@@ -28,7 +28,7 @@ from typing import Any
 SKILLS_ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(SKILLS_ROOT / "_review-lib"))
 
-from reviewlib import config as config_mod, gh  # noqa: E402
+from reviewlib import config as config_mod, files, gh  # noqa: E402
 
 COMMENT_MARKER = "<!-- qa-verify-agent -->"
 
@@ -67,7 +67,7 @@ MAX_OUTPUT_CHARS = 6000
 def _read_json(path: str | None) -> dict[str, Any]:
     if path in (None, "-"):
         return json.loads(sys.stdin.read())
-    return json.loads(Path(path).read_text(encoding="utf-8-sig"))
+    return json.loads(files.read_text(path))
 
 
 def extract_criteria(body: str) -> list[dict[str, Any]]:
@@ -114,12 +114,17 @@ def cmd_resolve(args: argparse.Namespace) -> None:
     if args.issue_json:
         issue = _read_json(args.issue_json)
         repo = issue.get("_repo") or args.repo
+        if not repo and issue.get("url"):
+            try:
+                repo = gh.normalize_repo(issue["url"])
+            except ValueError:
+                repo = None
     else:
         repo = gh.normalize_repo(args.repo)
         issue = gh.issue_fetch(repo, args.issue)
         issue["_repo"] = repo
     if not repo:
-        raise SkillError("--repo is required when --issue-json has no _repo field")
+        raise SkillError("--repo is required when it cannot be derived from --issue-json")
 
     criteria = extract_criteria(issue.get("body") or "")
 
@@ -184,7 +189,7 @@ def cmd_run(args: argparse.Namespace) -> None:
     results: dict[str, Any] = {"steps": []}
     if args.out and Path(args.out).is_file():
         try:
-            results = json.loads(Path(args.out).read_text(encoding="utf-8-sig"))
+            results = json.loads(files.read_text(args.out))
             results.setdefault("steps", [])
         except (json.JSONDecodeError, OSError):
             results = {"steps": []}

@@ -12,14 +12,14 @@ Reviews a GitHub PR for database/schema changes, posts a DB review comment, and
 
 ## Quick start
 
+Replace `<skills-root>` with your skills directory (`~/.agents/skills`). Commands are
+single-line and shell-neutral (POSIX shells and Windows PowerShell).
+
 ```bash
-SKILLS=~/.agents/skills
-python "$SKILLS/_review-lib/cli.py" check
-python "$SKILLS/_review-lib/cli.py" pr-fetch --repo owner/repo --pr 123 > /tmp/pr.json
-python "$SKILLS/db-review/scripts/db_checks.py" --pr-json /tmp/pr.json \
-  --repo-root /path/to/checkout --comment-out /tmp/db-comment.md --json
-python "$SKILLS/_review-lib/cli.py" comment --repo owner/repo --number 123 \
-  --kind pr --body-file /tmp/db-comment.md
+python "<skills-root>/_review-lib/cli.py" check
+python "<skills-root>/_review-lib/cli.py" pr-fetch --repo owner/repo --pr 123 > /tmp/pr.json
+python "<skills-root>/db-review/scripts/db_checks.py" --pr-json /tmp/pr.json --repo-root /path/to/checkout --comment-out /tmp/db-comment.md --json
+python "<skills-root>/_review-lib/cli.py" comment --repo owner/repo --number 123 --kind pr --body-file /tmp/db-comment.md
 ```
 
 On PASS, add `--update-registry` (requires `--repo-root`) to append the entry to

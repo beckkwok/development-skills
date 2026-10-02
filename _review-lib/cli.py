@@ -18,7 +18,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from reviewlib import classify, config as config_mod, gh, guidelines, render  # noqa: E402
+from reviewlib import classify, config as config_mod, files, gh, guidelines, render  # noqa: E402
 
 SKILLS_ROOT = Path(__file__).resolve().parent.parent
 
@@ -31,13 +31,13 @@ def _emit(obj: object) -> None:
 def _read_text(path: str | None) -> str:
     if path in (None, "-"):
         return sys.stdin.read()
-    return Path(path).read_text(encoding="utf-8-sig")
+    return files.read_text(path)
 
 
 def _explicit(args: argparse.Namespace) -> dict:
     cfg: dict = {}
     if getattr(args, "config_file", None):
-        cfg = json.loads(Path(args.config_file).read_text(encoding="utf-8-sig"))
+        cfg = json.loads(files.read_text(args.config_file))
     return cfg
 
 

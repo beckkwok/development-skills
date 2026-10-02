@@ -15,6 +15,10 @@ repo and issue, so it can run on a different machine or model than the coding ag
 - `SKILLS_ROOT` - the parent of `SKILL_DIR` (contains `_review-lib/`).
 - `TMP` - any scratch directory (e.g. `$env:TEMP` on Windows, `/tmp` elsewhere).
 
+Commands below are single-line and shell-neutral: they run unchanged in POSIX
+shells and Windows PowerShell. Prefer probe files over inline quoted commands -
+quoting rules differ between shells and can corrupt inline code.
+
 ## Prerequisites
 
 - GitHub CLI installed and authenticated: run the `check` command below.
@@ -38,8 +42,7 @@ python "<SKILLS_ROOT>/_review-lib/cli.py" issue-fetch --repo <owner/repo> --issu
 ### 3. Resolve criteria and target
 
 ```bash
-python "<SKILL_DIR>/scripts/qa_checks.py" resolve --repo <owner/repo> --issue <N> \
-  --repo-root "<path-to-checkout>"
+python "<SKILL_DIR>/scripts/qa_checks.py" resolve --repo <owner/repo> --issue <N> --repo-root "<path-to-checkout>"
 ```
 
 - Extracts acceptance criteria from the issue (task lists, then acceptance sections).
@@ -52,8 +55,7 @@ python "<SKILL_DIR>/scripts/qa_checks.py" resolve --repo <owner/repo> --issue <N
 ### 4. Run verification, recording every step
 
 ```bash
-python "<SKILL_DIR>/scripts/qa_checks.py" run --repo-root "<path-to-checkout>" \
-  --step "<name>" --out "<TMP>/results.json>" -- "<command>"
+python "<SKILL_DIR>/scripts/qa_checks.py" run --repo-root "<path-to-checkout>" --step "<name>" --out "<TMP>/results.json" -- "python <TMP>/probe.py"
 ```
 
 - Run the test suite first, then one acceptance probe per criterion.
@@ -78,9 +80,7 @@ Write the criteria verdicts into `<TMP>/results.json`:
 ```
 
 ```bash
-python "<SKILL_DIR>/scripts/qa_checks.py" render --issue-json "<TMP>/issue.json" \
-  --results "<TMP>/results.json" --guidelines "general[,repo-specific]" \
-  --comment-out "<TMP>/qa-comment.md"
+python "<SKILL_DIR>/scripts/qa_checks.py" render --issue-json "<TMP>/issue.json" --results "<TMP>/results.json" --guidelines "general[,repo-specific]" --comment-out "<TMP>/qa-comment.md"
 ```
 
 - Verdict is computed: all verified + all green → **QA PASS**; any failure → **QA FAIL**;
@@ -92,8 +92,7 @@ python "<SKILL_DIR>/scripts/qa_checks.py" render --issue-json "<TMP>/issue.json"
 Post a **new** comment by default:
 
 ```bash
-python "<SKILLS_ROOT>/_review-lib/cli.py" comment --repo <owner/repo> --number <N> \
-  --kind issue --body-file "<TMP>/qa-comment.md"
+python "<SKILLS_ROOT>/_review-lib/cli.py" comment --repo <owner/repo> --number <N> --kind issue --body-file "<TMP>/qa-comment.md"
 ```
 
 Only when the user asks to update in place, use `find-comment` with the marker

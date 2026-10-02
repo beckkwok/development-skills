@@ -15,6 +15,9 @@ repo's configured lint/test commands.
 - `SKILLS_ROOT` - the parent of `SKILL_DIR` (contains `_review-lib/`).
 - `TMP` - any scratch directory (e.g. `$env:TEMP` on Windows, `/tmp` elsewhere).
 
+Commands below are single-line and shell-neutral: they run unchanged in POSIX
+shells and Windows PowerShell.
+
 ## Prerequisites
 
 - GitHub CLI installed and authenticated: run the `check` command below.
@@ -36,8 +39,7 @@ python "<SKILLS_ROOT>/_review-lib/cli.py" pr-fetch --repo <owner/repo> --pr <N> 
 ### 3. Load guidelines
 
 ```bash
-python "<SKILLS_ROOT>/_review-lib/cli.py" guidelines --skill code-review --key code \
-  --repo <owner/repo> --ref <headRefOid> --json
+python "<SKILLS_ROOT>/_review-lib/cli.py" guidelines --skill code-review --key code --repo <owner/repo> --ref <headRefOid> --json
 ```
 
 - Use `--repo-root <path>` instead of `--repo/--ref` when working from a checkout.
@@ -46,11 +48,7 @@ python "<SKILLS_ROOT>/_review-lib/cli.py" guidelines --skill code-review --key c
 ### 4. Analyze
 
 ```bash
-python "<SKILL_DIR>/scripts/code_checks.py" --pr-json "<TMP>/pr.json" \
-  --comment-out "<TMP>/code-comment.md" \
-  --summary "<one-line summary>" \
-  --guidelines "general[,repo-specific]" \
-  --json > "<TMP>/code-result.json"
+python "<SKILL_DIR>/scripts/code_checks.py" --pr-json "<TMP>/pr.json" --comment-out "<TMP>/code-comment.md" --summary "<one-line summary>" --guidelines "general[,repo-specific]" --json > "<TMP>/code-result.json"
 ```
 
 Add `--repo-root "<path>" --run-commands` to run the repo's `commands.lint` /
@@ -66,17 +64,17 @@ The result JSON has `verdict`, `findings`, `code_files`, `test_files`,
 Post a **new** comment by default:
 
 ```bash
-python "<SKILLS_ROOT>/_review-lib/cli.py" comment --repo <owner/repo> --number <N> \
-  --kind pr --body-file "<TMP>/code-comment.md"
+python "<SKILLS_ROOT>/_review-lib/cli.py" comment --repo <owner/repo> --number <N> --kind pr --body-file "<TMP>/code-comment.md"
 ```
 
 Only when the user asks to update in place:
 
 ```bash
-python "<SKILLS_ROOT>/_review-lib/cli.py" find-comment --repo <owner/repo> --number <N> \
-  --marker "<!-- code-review-agent -->"
-python "<SKILLS_ROOT>/_review-lib/cli.py" comment-update --repo <owner/repo> \
-  --comment-id <id> --body-file "<TMP>/code-comment.md"
+python "<SKILLS_ROOT>/_review-lib/cli.py" find-comment --repo <owner/repo> --number <N> --marker "<!-- code-review-agent -->"
+```
+
+```bash
+python "<SKILLS_ROOT>/_review-lib/cli.py" comment-update --repo <owner/repo> --comment-id <id> --body-file "<TMP>/code-comment.md"
 ```
 
 ## Verdict policy

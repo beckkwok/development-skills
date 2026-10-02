@@ -22,6 +22,9 @@ When finished it also updates the issue itself:
 - `SKILLS_ROOT` - the parent of `SKILL_DIR` (contains `_review-lib/`).
 - `TMP` - any scratch directory (e.g. `$env:TEMP` on Windows, `/tmp` elsewhere).
 
+Commands below are single-line and shell-neutral: they run unchanged in POSIX
+shells and Windows PowerShell.
+
 ## Prerequisites
 
 - GitHub CLI installed and authenticated: run the `check` command below.
@@ -44,8 +47,7 @@ python "<SKILLS_ROOT>/_review-lib/cli.py" issue-fetch --repo <owner/repo> --issu
 ### 3. Extract structure and code hints
 
 ```bash
-python "<SKILL_DIR>/scripts/issue_checks.py" extract --issue-json "<TMP>/issue.json" \
-  --repo-root "<path-to-checkout>" --json > "<TMP>/issue-extract.json"
+python "<SKILL_DIR>/scripts/issue_checks.py" extract --issue-json "<TMP>/issue.json" --repo-root "<path-to-checkout>" --json > "<TMP>/issue-extract.json"
 ```
 
 The result contains parsed `sections` (steps, expected, actual, environment, logs),
@@ -84,25 +86,23 @@ Never invent output - if it was not run, say so and use `unknown`.
 ### 6. Render and post the comment
 
 ```bash
-python "<SKILL_DIR>/scripts/issue_checks.py" render --issue-json "<TMP>/issue.json" \
-  --analysis "<TMP>/analysis.json" --guidelines "general[,repo-specific]" \
-  --comment-out "<TMP>/debug-comment.md"
+python "<SKILL_DIR>/scripts/issue_checks.py" render --issue-json "<TMP>/issue.json" --analysis "<TMP>/analysis.json" --guidelines "general[,repo-specific]" --comment-out "<TMP>/debug-comment.md"
 ```
 
 Post a **new** comment by default:
 
 ```bash
-python "<SKILLS_ROOT>/_review-lib/cli.py" comment --repo <owner/repo> --number <N> \
-  --kind issue --body-file "<TMP>/debug-comment.md"
+python "<SKILLS_ROOT>/_review-lib/cli.py" comment --repo <owner/repo> --number <N> --kind issue --body-file "<TMP>/debug-comment.md"
 ```
 
 Only when the user asks to update in place:
 
 ```bash
-python "<SKILLS_ROOT>/_review-lib/cli.py" find-comment --repo <owner/repo> --number <N> \
-  --marker "<!-- debug-analysis-agent -->"
-python "<SKILLS_ROOT>/_review-lib/cli.py" comment-update --repo <owner/repo> \
-  --comment-id <id> --body-file "<TMP>/debug-comment.md"
+python "<SKILLS_ROOT>/_review-lib/cli.py" find-comment --repo <owner/repo> --number <N> --marker "<!-- debug-analysis-agent -->"
+```
+
+```bash
+python "<SKILLS_ROOT>/_review-lib/cli.py" comment-update --repo <owner/repo> --comment-id <id> --body-file "<TMP>/debug-comment.md"
 ```
 
 ### 7. Assign and label the issue
@@ -119,8 +119,7 @@ Assign the issue back to its **author** (from the fetched issue) and apply
 | Usage / how-to | `question` | Not a defect - the user needs guidance |
 
 ```bash
-python "<SKILLS_ROOT>/_review-lib/cli.py" issue-edit --repo <owner/repo> --number <N> \
-  --assignee "<author-login>" --label issue-analysed --label <outcome> --ensure-labels
+python "<SKILLS_ROOT>/_review-lib/cli.py" issue-edit --repo <owner/repo> --number <N> --assignee "<author-login>" --label issue-analysed --label <outcome> --ensure-labels
 ```
 
 `--ensure-labels` creates any missing labels first, so the command does not fail

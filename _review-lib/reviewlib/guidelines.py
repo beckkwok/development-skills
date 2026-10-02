@@ -9,8 +9,8 @@ from __future__ import annotations
 
 from pathlib import Path
 from typing import Any
-
 from . import config as config_mod
+from . import files
 from . import gh
 
 GENERAL_FILENAME = "general-guidelines.md"
@@ -21,7 +21,7 @@ def load_general(skill_dir: str | Path) -> str:
     path = Path(skill_dir) / "references" / GENERAL_FILENAME
     if not path.is_file():
         return ""
-    return path.read_text(encoding="utf-8")
+    return files.read_text(path)
 
 
 def load_repo_guideline(
@@ -34,7 +34,7 @@ def load_repo_guideline(
     """Read a repo-specific guideline from a local checkout or the GitHub API."""
     if repo_root:
         p = Path(repo_root) / path
-        return p.read_text(encoding="utf-8") if p.is_file() else ""
+        return files.read_text(p) if p.is_file() else ""
     if repo:
         return gh.fetch_raw_file(repo, path, ref=ref) or ""
     return ""
