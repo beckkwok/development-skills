@@ -165,11 +165,63 @@ def find_code_hits(repo_root: str, keywords: list[str], limit: int = 10) -> list
     return [{"file": name, "hits": count} for name, count in top]
 
 
+BUG_LABELS = {"bug", "defect", "regression"}
+FEATURE_LABELS = {"enhancement", "feature", "feature-request", "proposal"}
+QUESTION_LABELS = {"question", "help wanted", "docs", "documentation"}
+
+FEATURE_RES = [
+    r"feature request", r"\benhancement\b", r"\bproposal\b", r"should support",
+    r"add support", r"would be (nice|great|good)", r"\bas a user\b",
+    r"please add\b", r"could you (add|support)",
+]
+QUESTION_RES = [
+    r"^how (do|can|to)\b", r"\bhow do i\b", r"\bquestion\b",
+    r"is there a way", r"can someone explain",
+]
+BUG_RES = [
+    r"\bcrash\b", r"\berror\b", r"\bexception\b", r"\btraceback\b",
+    r"\bbroken\b", r"\bfails?\b", r"expected behavior", r"actual behavior",
+    r"steps to reproduce",
+]
+
+
+def _label_names(issue: dict[str, Any]) -> set[str]:
+    names = set()
+    for label in issue.get("labels") or []:
+        name = label.get("name") if isinstance(label, dict) else label
+        if name:
+            names.add(str(name).lower())
+    return names
+
+
+def detect_kind(issue: dict[str, Any]) -> str:
+    """Classify an issue as bug, feature, question, or unclear.
+
+    Labels win; otherwise keyword heuristics over title + body.
+    """
+    labels = _label_names(issue)
+    if labels & BUG_LABELS:
+        return "bug"
+    if labels & FEATURE_LABELS:
+        return "feature"
+    if labels & QUESTION_LABELS:
+        return "question"
+    text = f"{issue.get('title') or ''}\n{issue.get('body') or ''}".lower()
+    if any(re.search(pattern, text) for pattern in FEATURE_RES):
+        return "feature"
+    if any(re.search(pattern, text) for pattern in QUESTION_RES):
+        return "question"
+    if any(re.search(pattern, text) for pattern in BUG_RES):
+        return "bug"
+    return "unclear"
+
+
 def extract(issue: dict[str, Any], repo_root: str | None = None) -> dict[str, Any]:
     body = issue.get("body") or ""
     title = issue.get("title") or ""
     keywords = extract_keywords(f"{title}\n{body}")
     return {
+        "kind": detect_kind(issue),
         "repo": issue.get("_repo"),
         "number": issue.get("number"),
         "title": title,
@@ -198,6 +250,46 @@ def _verdict_text(value: Any) -> str:
 
 
 def render(issue: dict[str, Any], analysis: dict[str, Any], guidelines: list[str] | None = None) -> str:
+    kind = str(analysis.get("kind") or issue.get("kind") or "bug").lower()
+    if kind in ("feature", "question", "unclear"):
+        return render_feature(issue, analysis, guidelines, kind)
+    return render_bug(issue, analysis, guidelines)
+
+
+def render_feature(issue: dict[str, Any], analysis: dict[str, Any],
+                   guidelines: list[str] | None = None, kind: str = "feature") -> str:
+    """Render a feature/question analysis: assessment, confidence, questions, sub-issues."""
+    title = "Feature Analysis" if kind == "feature" else "Issue Analysis"
+    lines: list[str] = [f"## {title}: {issue.get('title', 'issue')}", ""]
+    if analysis.get("summary"):
+        lines += [str(analysis["summary"]).strip(), ""]
+    lines += [f"- **Issue:** {issue.get('url', '')}",
+              f"- **Confidence:** {_verdict_text(analysis.get('confidence', 'unknown'))}", ""]
+    if analysis.get("assessment"):
+        lines += ["### Understanding", "", str(analysis["assessment"]).strip(), ""]
+    if analysis.get("feasibility"):
+        lines += ["### Feasibility & fit", "", str(analysis["feasibility"]).strip(), ""]
+    if analysis.get("questions"):
+        lines += ["### Questions for the author", ""]
+        lines += [f"{i}. {q}" for i, q in enumerate(analysis["questions"], 1)]
+        lines += [""]
+    if analysis.get("sub_issues"):
+        lines += ["### Sub-issues", "",
+                  "This was split into smaller pieces so each can be tracked separately:", ""]
+        for sub in analysis["sub_issues"]:
+            lines += [f"- [#{sub.get('number')}]({sub.get('url')}) - {sub.get('title', '')}"]
+        lines += [""]
+    if analysis.get("next_steps"):
+        lines += ["### Suggested next steps", ""]
+        lines += [f"- {step}" for step in analysis["next_steps"]]
+        lines += [""]
+    if guidelines:
+        lines += ["Guidelines applied: " + ", ".join(f"`{g}`" for g in guidelines), ""]
+    lines += [COMMENT_MARKER]
+    return "\n".join(lines).rstrip() + "\n"
+
+
+def render_bug(issue: dict[str, Any], analysis: dict[str, Any], guidelines: list[str] | None = None) -> str:
     lines: list[str] = [f"## Debug Analysis: {issue.get('title', 'issue')}", ""]
 
     if analysis.get("summary"):

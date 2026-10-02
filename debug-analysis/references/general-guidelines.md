@@ -24,8 +24,24 @@ extend these rules and always take precedence.
 - Never fabricate logs, stack traces, or command output.
 - State confidence as **high**, **medium**, or **low**.
 
+## Feature requests and questions
+
+- Restate the request in your own words before judging it.
+- Assess feasibility against the codebase: where would it plug in (UI, storage,
+  API)? Cite `file:line`. Name blockers and unknowns explicitly.
+- Set confidence honestly:
+  - **high** - scope is clear, small, and fits existing patterns;
+  - **medium** - mostly clear with a few open points (ask about them);
+  - **low** - vague, large, or touching unknown areas (ask questions, consider splitting).
+- If confidence is not high, the report must contain questions for the author.
+- Split large work into sub-issues when it spans more than three distinct areas
+  or is too big for one PR. Each sub-issue gets a narrow scope, its own acceptance
+  criteria, and a link back to the parent (`Part of #<N>`).
+
 ## Safety
 
 - Do not modify repository source or tests. Put throwaway repro scripts in a
   scratch directory outside the repo.
 - Do not push, commit, or open PRs.
+- Never implement the requested feature or fix with this skill. Creating
+  sub-issues is the only repository-content write besides comments and labels.

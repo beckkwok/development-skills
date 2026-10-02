@@ -135,6 +135,14 @@ def cmd_issue_edit(args: argparse.Namespace) -> None:
     )
 
 
+def cmd_issue_create(args: argparse.Namespace) -> None:
+    body = _read_text(args.body_file)
+    result = gh.issue_create(
+        args.repo, args.title, body, labels=args.label, assignees=args.assignee,
+    )
+    _emit(result)
+
+
 def cmd_render(args: argparse.Namespace) -> None:
     findings = json.loads(_read_text(args.findings))
     applied = [g for g in (args.guidelines or "").split(",") if g]
@@ -210,6 +218,14 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--label", action="append", default=[], help="repeatable label name")
     p.add_argument("--ensure-labels", action="store_true", help="create missing labels before applying")
     p.set_defaults(func=cmd_issue_edit)
+
+    p = sub.add_parser("issue-create", help="create a new issue (e.g. a decomposed sub-issue)")
+    p.add_argument("--repo", required=True)
+    p.add_argument("--title", required=True)
+    p.add_argument("--body-file", default="-", help="file with the body, or '-' for stdin")
+    p.add_argument("--label", action="append", default=[], help="repeatable label name")
+    p.add_argument("--assignee", action="append", default=[], help="repeatable GitHub login")
+    p.set_defaults(func=cmd_issue_create)
 
     p = sub.add_parser("render", help="render findings JSON into a Markdown comment")
     p.add_argument("--skill", required=True, help="display title, e.g. 'DB Review'")

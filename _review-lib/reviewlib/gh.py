@@ -236,6 +236,28 @@ def linked_prs(repo: str, issue: int) -> list[int]:
     return out
 
 
+def issue_create(
+    repo: str,
+    title: str,
+    body: str,
+    labels: list[str] | None = None,
+    assignees: list[str] | None = None,
+) -> dict[str, Any]:
+    """Create an issue and return its URL and number."""
+    repo = normalize_repo(repo)
+    args = ["issue", "create", "--repo", repo, "--title", title, "--body-file", "-"]
+    for label in labels or []:
+        if label:
+            args += ["--label", label]
+    for assignee in assignees or []:
+        if assignee:
+            args += ["--assignee", assignee]
+    proc = _gh(args, input_text=body)
+    url = proc.stdout.strip().splitlines()[-1] if proc.stdout.strip() else ""
+    match = re.search(r"/issues/(\d+)", url)
+    return {"url": url, "number": int(match.group(1)) if match else None}
+
+
 def comment_post(repo: str, number: int, body: str, kind: str = "pr") -> str:
     """Post a new comment on a PR or issue and return its URL."""
     repo = normalize_repo(repo)

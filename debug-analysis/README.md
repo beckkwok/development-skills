@@ -1,11 +1,15 @@
 # debug-analysis
 
-Analyzes a GitHub issue and answers two questions, then posts the result,
-assigns it to the author, and labels it:
-1. Does the bug make sense?
-2. Can we reproduce it?
+Analyzes a GitHub issue and posts the result, assigns it to the author, labels it,
+and splits large work into sub-issues. Two modes, detected from labels then keywords:
 
-Read-only on source; throwaway reproduction scripts go outside the repo.
+- **Bug mode** - 1. Does the bug make sense? 2. Can we reproduce it?
+- **Feature mode** - restate and assess the request, state confidence, ask the author
+  questions when unsure, and decompose large work into sub-issues.
+
+Read-only on repository files; throwaway reproduction scripts go outside the repo.
+It never implements anything. The only writes are comments, issue assign/label,
+and new sub-issues.
 
 ## Files
 
@@ -35,6 +39,12 @@ Assign back to the author and label (`bug` | `enhancement` | `invalid` | `needs-
 
 ```bash
 python "<skills-root>/_review-lib/cli.py" issue-edit --repo owner/repo --number 7 --assignee <author-login> --label issue-analysed --label bug --ensure-labels
+```
+
+Split large work into sub-issues (each body links back with `Part of #7`):
+
+```bash
+python "<skills-root>/_review-lib/cli.py" issue-create --repo owner/repo --title "[Parent #7] <slice>" --body-file /tmp/sub-1.md --label enhancement
 ```
 
 ## `analysis.json` shape
