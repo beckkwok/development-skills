@@ -15,6 +15,8 @@ extend these rules and always take precedence.
 
 - A new branch starts **empty** at the base branch HEAD.
 - Do not commit file changes as part of branch creation; that is a separate task.
+- `--empty-commit` may add a single empty bootstrap commit (no file changes) so the
+  PR can be opened.
 - Never force-push and never overwrite an existing branch.
 
 ## Pull requests

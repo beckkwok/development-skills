@@ -1,8 +1,8 @@
 # `_review-lib` — shared helpers for review skills
 
-Dependency-free (standard library only) helpers shared by `db-review`, `code-review`
-and `debug-analysis`. It has **no `SKILL.md`**, so agents never load it as a skill —
-they call it as a command.
+Dependency-free (standard library only) helpers shared by `db-review`, `code-review`,
+`debug-analysis` and `branch-pr`. It has **no `SKILL.md`**, so agents never load it
+as a skill — they call it as a command.
 
 ## Requirements
 
@@ -41,6 +41,7 @@ python <skills-root>/_review-lib/cli.py <command> [options]
 | `comment --repo owner/repo --number N [--kind pr\|issue] --body-file -` | Post a new comment. |
 | `comment-update --repo owner/repo --comment-id ID --body-file -` | Edit a comment in place. |
 | `find-comment --repo owner/repo --number N --marker TEXT` | Find a comment by marker. |
+| `issue-edit --repo owner/repo --number N [--assignee L] [--label L] [--ensure-labels]` | Add assignees/labels (additive only). |
 | `render --skill "DB Review" --verdict pass\|fail --findings -` | Render a Markdown comment body. |
 
 Common options: `--config-file`, `--repo-root`, `--no-repo-config`.

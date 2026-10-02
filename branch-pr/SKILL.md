@@ -64,6 +64,8 @@ python "<SKILL_DIR>/scripts/branch_pr.py" --repo <owner/repo> --issue <N> \
 - **PR title/body:** from the issue (with `Closes #<N>`); override with
   `--title`/`--body-file`.
 - **Assign:** `--reviewer` and `--assignee` are passed to `gh pr create`.
+- **Empty branches:** GitHub cannot open a PR with zero commits, so pass
+  `--empty-commit` to add one empty bootstrap commit (no file changes).
 
 ## Guardrails
 

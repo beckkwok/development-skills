@@ -3,7 +3,7 @@
 
 Write-capable, with guardrails:
 
-- never commits file changes (the branch starts empty at the base HEAD);
+- never commits file changes (use --empty-commit for one empty bootstrap commit);
 - never force-pushes;
 - refuses to overwrite an existing local or remote branch;
 - refuses to run on a dirty working tree (unless ``--allow-dirty``);
@@ -186,6 +186,11 @@ def execute(args: argparse.Namespace) -> dict[str, Any]:
 
     git(repo_root, "fetch", "origin", base)
     git(repo_root, "checkout", "-b", branch, f"origin/{base}")
+    if args.empty_commit:
+        message = f"chore: bootstrap {branch}"
+        if issue:
+            message += f" for #{issue['number']}"
+        git(repo_root, "commit", "--allow-empty", "-m", message)
     git(repo_root, "push", "-u", "origin", branch)
 
     pr_url = gh.pr_create(
@@ -213,6 +218,8 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--clone-dir", help="directory to clone into if no checkout exists")
     parser.add_argument("--allow-dirty", action="store_true", help="allow a dirty working tree")
     parser.add_argument("--dry-run", action="store_true", help="print the plan without changing anything")
+    parser.add_argument("--empty-commit", action="store_true",
+                        help="add one empty bootstrap commit (no file changes) so a PR can be opened")
     parser.add_argument("--json", action="store_true", help="print the result as JSON")
     args = parser.parse_args(argv)
 
